@@ -1,0 +1,117 @@
+## 1. Planificación y diseño
+
+- Para cada feature o bug, registrar un issue con descripción técnica y criterios de aceptación (qué debe pasar en pruebas automáticas y funcionales).  
+- Acordar para cada cambio qué se va a validar en:
+  - Pruebas unitarias/integración (nivel código).  
+  - Pruebas funcionales en el Droplet (nivel C2/cliente).
+
+***
+
+## 2. Estrategia de ramas y versiones
+
+- Usar `main` como rama estable (solo código ya probado funcionalmente).  
+- Usar `dev` como rama de integración donde se juntan las features que pasan CI + pruebas funcionales.  
+- Para cada cambio, crear una rama de feature basada en `dev` con nombre descriptivo.  
+- No trabajar directamente sobre `dev` ni `main`, siempre vía ramas y Pull Requests.
+
+***
+
+## 3. Trabajo del desarrollador (código y pruebas locales)
+
+- Al comenzar una feature:
+  - Actualizar la rama `dev` local.  
+  - Crear rama de feature desde `dev`.
+
+- Durante el desarrollo:
+  - Escribir la implementación junto con pruebas automatizadas (unitarias e integración).  
+  - Ejecutar regularmente la suite de pruebas local para detectar errores temprano.  
+  - Mantener commits pequeños y mensajes claros que expliquen la intención del cambio.
+
+- Al terminar la feature:
+  - Verificar que todas las pruebas automatizadas locales pasan.  
+  - Subir la rama y abrir un Pull Request hacia `dev`.
+
+***
+
+## 4. CI en GitHub para Pull Requests
+
+- Definir un workflow de GitHub Actions que se ejecute en cada Pull Request hacia `dev` y en cada push a `dev`.  
+- Ese workflow debe:
+  - Obtener el código de la rama.  
+  - Preparar el entorno de compilación (lenguaje, dependencias).  
+  - Compilar el proyecto para asegurar que no hay errores de build.  
+  - Ejecutar todas las pruebas automatizadas (unitarias e integración).  
+- Configurar la regla de que no se pueda hacer merge hacia `dev` si este workflow falla.
+
+***
+
+## 5. Revisión de código
+
+- Para cada Pull Request:
+  - Revisar cambios de lógica, diseño y seguridad (por lo menos por ti, y si es posible por otra persona).  
+  - Confirmar que las pruebas automatizadas cubren los casos relevantes de la feature o bug.  
+  - Una vez aprobada la revisión y con CI en verde, fusionar la rama de feature en `dev`.
+
+***
+
+## 6. Preparación del entorno en el Droplet
+
+- Definir en el Droplet:
+  - Un usuario dedicado al servicio RedBaphomet.  
+  - Un directorio fijo donde residirá el código y los binarios.  
+  - Servicios gestionados por systemd (o similar) para el servidor C2 y para el cliente de pruebas.  
+- Mantener en ese mismo directorio el repositorio del fork y un subdirectorio específico para scripts de pruebas funcionales.
+
+***
+
+## 7. Definición de pruebas funcionales
+
+- Diseñar un conjunto mínimo de pruebas funcionales que representen el uso real básico:
+  - Verificar que el servidor C2 está en ejecución.  
+  - Verificar que el cliente de pruebas está en ejecución.  
+  - Verificar que el cliente se registra correctamente en el C2 (vía CLI o API).  
+  - Ejecutar un comando remoto sencillo sobre el cliente de pruebas y validar que la respuesta es la esperada.  
+- Encapsular esta lógica en un script dentro del repositorio que:
+  - Compruebe el estado de los servicios.  
+  - Espere un tiempo razonable a que el cliente se conecte.  
+  - Ejecute el comando de test y valide la respuesta.  
+  - Devuelva explícitamente éxito o fallo para que el pipeline pueda decidir.
+
+***
+
+## 8. CD: despliegue y pruebas funcionales desde GitHub Actions
+
+- Definir en el mismo workflow (o en un job separado del workflow de CI) un job que solo se ejecute cuando hay cambios en `dev`.  
+- Ese job debe:
+  - Construir los binarios del servidor y del cliente para el entorno del Droplet.  
+  - Transferir los binarios y los scripts de pruebas funcionales al directorio designado en el Droplet.  
+  - Reiniciar los servicios del servidor y del cliente de pruebas en el Droplet.  
+  - Ejecutar de forma remota el script de pruebas funcionales.  
+- Establecer que si las pruebas funcionales fallan:
+  - El job se marque como fallido.  
+  - El commit en `dev` se considere no apto para promoción a `main`.
+
+***
+
+## 9. Política de promoción a `main`
+
+- Definir que solo se promuevan a `main` aquellos cambios que cumplan estas condiciones:
+  - Merge previo a `dev` vía Pull Request con revisión de código.  
+  - CI de build + pruebas automatizadas en verde.  
+  - Job de despliegue y pruebas funcionales en el Droplet en verde.  
+- Para promocionar:
+  - Crear un Pull Request de `dev` a `main` cuando se desee cortar versión.  
+  - Revisar de nuevo a alto nivel y aprobar manualmente.  
+  - Opcionalmente, disparar un workflow adicional en `main` que etiquete la versión y/o genere un release.
+
+***
+
+## 10. Ciclo iterativo continuo
+
+- Repetir el ciclo para cada feature o corrección:
+  - Planificar → branch → codificar + pruebas locales → PR → CI → merge a `dev` → despliegue + pruebas funcionales → promoción a `main`.  
+- Ajustar continuamente:
+  - Añadiendo nuevas pruebas automatizadas cuando se descubran bugs.  
+  - Refinando las pruebas funcionales para cubrir más casos críticos.  
+  - Mejorando las reglas de revisión y calidad según lo vayan pidiendo tus cambios.
+

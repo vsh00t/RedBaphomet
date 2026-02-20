@@ -1,0 +1,23 @@
+[Unit]
+Description=RedBaphomet C2 Server
+After=network.target
+
+[Service]
+Type=simple
+User=redbaphomet
+WorkingDirectory=/home/redbaphomet
+Environment="HOME=/home/redbaphomet"
+ExecStart=/home/redbaphomet/bin/sliver-server --lport 31337
+Restart=on-failure
+RestartSec=10
+
+# Logging
+StandardOutput=append:/home/redbaphomet/logs/server.log
+StandardError=append:/home/redbaphomet/logs/server-error.log
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

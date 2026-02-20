@@ -1,0 +1,78 @@
+name: CD - Deploy & Functional Tests
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy-and-test:
+    name: Deploy to Droplet & Run Functional Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Go 1.25
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.25.6"
+
+      - name: OS Packages
+        run: |
+          sudo apt-get update --fix-missing && sudo apt-get -y install \
+          git build-essential zlib1g zlib1g-dev wget zip unzip sshpass
+
+      - name: Check Out Code
+        uses: actions/checkout@v6
+
+      - name: Git Fetch Tags
+        run: git fetch --prune --unshallow --tags -f
+
+      - name: Build Server for Droplet
+        run: make clean && make linux-amd64
+
+      - name: Build Test Client for Droplet
+        run: make client GOOS=linux GOARCH=amd64
+
+      - name: Copy binaries to Droplet
+        env:
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+          DROPLET_USER: redbaphomet
+          DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+        run: |
+          echo "$DROPLET_SSH_KEY" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key ${DROPLET_USER}@${DROPLET_IP} "mkdir -p /home/redbaphomet/bin"
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key sliver-server ${DROPLET_USER}@${DROPLET_IP}:/home/redbaphomet/bin/
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key sliver-client ${DROPLET_USER}@${DROPLET_IP}:/home/redbaphomet/bin/
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key deploy/functional-tests.sh ${DROPLET_USER}@${DROPLET_IP}:/home/redbaphomet/
+
+      - name: Restart C2 Server Service
+        env:
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+          DROPLET_USER: redbaphomet
+          DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+        run: |
+          echo "$DROPLET_SSH_KEY" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key ${DROPLET_USER}@${DROPLET_IP} "sudo systemctl restart redbaphomet-server"
+          sleep 10
+
+      - name: Restart Test Client Service
+        env:
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+          DROPLET_USER: redbaphomet
+          DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+        run: |
+          echo "$DROPLET_SSH_KEY" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key ${DROPLET_USER}@${DROPLET_IP} "sudo systemctl restart redbaphomet-client"
+          sleep 15
+
+      - name: Run Functional Tests
+        env:
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+          DROPLET_USER: redbaphomet
+          DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+        run: |
+          echo "$DROPLET_SSH_KEY" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key ${DROPLET_USER}@${DROPLET_IP} "bash /home/redbaphomet/functional-tests.sh"

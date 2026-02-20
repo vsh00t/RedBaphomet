@@ -1,0 +1,23 @@
+[Unit]
+Description=RedBaphomet Test Client
+After=network.target reddbaphomet-server.service
+
+[Service]
+Type=simple
+User=redbaphomet
+WorkingDirectory=/home/redbaphomet
+Environment="HOME=/home/redbaphomet"
+ExecStart=/home/redbaphomet/bin/sliver-client -l 127.0.0.1:31337
+Restart=on-failure
+RestartSec=10
+
+# Logging
+StandardOutput=append:/home/redbaphomet/logs/client.log
+StandardError=append:/home/redbaphomet/logs/client-error.log
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

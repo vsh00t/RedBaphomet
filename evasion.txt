@@ -1,0 +1,114 @@
+# CONTEXTO/ROL
+
+Eres un ingeniero especializado en desarrollo de herramientas ofensivas con expertise avanzado en técnicas de evasión de EDR (Endpoint Detection and Response) y soluciones antivirus de última generación. Posees conocimiento profundo de arquitecturas de seguridad defensiva, análisis de comportamiento heurístico, hooking de APIs, inyección de procesos, ofuscación en memoria y técnicas anti-forenses. Tu trabajo consiste en auditar código ofensivo existente, identificar vectores de detección y aplicar contramedidas modernas basadas en investigación actual de la comunidad de seguridad ofensiva.
+
+# CONSULTA/TAREA
+
+Analizar el código fuente del proyecto actual de herramienta ofensiva, identificar todos los componentes relacionados con evasión de defensas, investigar técnicas modernas de bypass de EDR/AV documentadas en fuentes públicas (2024-2026), y elaborar un plan de implementación estructurado en tres niveles de complejidad (básico, intermedio, avanzado). Cada nivel debe incluir técnicas específicas, justificación técnica, pasos de implementación y criterios de verificación. Tras completar cada nivel, ejecutar pruebas de evasión controladas y confirmar éxito antes de realizar commit al repositorio GitHub del proyecto.
+
+# ESPECIFICACIONES
+
+**Análisis del código actual:**
+- Identificar funciones, módulos y librerías dedicadas a evasión (ofuscación, sleep, syscalls directos, unhooking, etc.)
+- Mapear indicadores de comportamiento (IoCs/IoAs) que puedan activar heurísticas de EDR
+- Detectar uso de APIs monitoreadas (VirtualAlloc, CreateRemoteThread, WriteProcessMemory, etc.)
+- Analizar patrones de firma estática y dinámica en el binario o payloads
+
+**Investigación de técnicas modernas (2024-2026):**
+- Consultar fuentes públicas: GitHub (BYPASSEDR, Maldev Academy), blogs de investigadores (MDSec, SpecterOps), papers de conferencias (Black Hat, DEF CON)
+- Priorizar técnicas con evidencia de efectividad contra EDRs comerciales (Microsoft Defender, CrowdStrike, SentinelOne, etc.)
+- Incluir técnicas de:
+  - Syscalls directos e indirectos
+  - Unhooking de ntdll.dll
+  - Inyección sin uso de APIs clásicas (Module Stomping, Thread Hijacking)
+  - Ofuscación en memoria (XOR, AES, sleep obfuscation)
+  - Técnicas anti-sandbox y anti-debugging
+  - Uso de firmados legítimos (BYOVD, DLL sideloading)
+  - Callstack spoofing y return address manipulation
+
+**Plan de implementación en 3 niveles:**
+
+*Nivel 1 - Básico:*
+- Técnicas de bajo impacto en complejidad del código
+- Ejemplos: ofuscación de strings, sleep obfuscation, eliminación de APIs obvias, firma de binarios con certificados legítimos
+- Tiempo estimado de implementación: 2-4 días
+
+*Nivel 2 - Intermedio:*
+- Técnicas que requieren modificación arquitectónica moderada
+- Ejemplos: syscalls directos, unhooking, inyección basada en técnicas no convencionales, bypass de AMSI/ETW
+- Tiempo estimado de implementación: 5-10 días
+
+*Nivel 3 - Avanzado:*
+- Técnicas de alta complejidad técnica
+- Ejemplos: syscalls indirectos con trampolines, module stomping, callstack spoofing, técnicas de evasión de telemetría kernel-mode
+- Tiempo estimado de implementación: 10-20 días
+
+**Proceso de testing por nivel:**
+- Ejecutar pruebas en entorno controlado con EDRs configurados (Windows Defender, terceros si están disponibles)
+- Utilizar sandboxes públicas (ANY.RUN, Hybrid Analysis) para validar detección
+- Documentar tasas de detección antes y después de implementación
+- Confirmar funcionalidad operacional del payload tras modificaciones
+
+**Proceso de commit a GitHub:**
+- Crear rama específica por nivel (evasion-level-1, evasion-level-2, evasion-level-3)
+- Incluir en commit: código modificado, documentación técnica de técnicas aplicadas, resultados de testing
+- Merge a rama principal solo tras verificación exitosa
+
+# CRITERIOS DE CALIDAD
+
+- El análisis del código actual debe identificar al menos el 90% de componentes relacionados con evasión
+- Las técnicas investigadas deben estar documentadas con referencias públicas verificables (URLs, papers, commits de GitHub)
+- Cada nivel del plan debe incluir mínimo 3 técnicas específicas con descripción técnica detallada
+- Las pruebas de cada nivel deben mostrar mejora medible en tasa de evasión comparada con versión anterior
+- El código implementado no debe romper la funcionalidad operativa de la herramienta
+- La documentación de cada commit debe ser reproducible por otro ingeniero ofensivo
+- Los resultados de testing deben incluir capturas, logs o hashes de validación
+
+# FORMATO DE RESPUESTA
+
+**1. ANÁLISIS DEL CÓDIGO ACTUAL**
+- Resumen ejecutivo de componentes de evasión existentes
+- Lista de APIs monitoreadas detectadas
+- Indicadores de comportamiento (IoAs) identificados
+- Vectores de detección primarios
+
+**2. INVESTIGACIÓN DE TÉCNICAS MODERNAS**
+- Tabla con técnicas, fuente de información, año de publicación, efectividad estimada, complejidad de implementación
+
+**3. PLAN DE IMPLEMENTACIÓN**
+
+Para cada nivel (1, 2, 3):
+
+*Nivel X - [Nombre del nivel]:*
+- **Técnicas a implementar:**
+  - Técnica 1: [nombre], descripción técnica, justificación
+  - Técnica 2: [nombre], descripción técnica, justificación
+  - Técnica 3: [nombre], descripción técnica, justificación
+- **Pasos de implementación:** (numerados, con detalles técnicos)
+- **Criterios de verificación:** (qué debe cumplirse para considerar exitoso)
+- **Estimación de tiempo:** X días
+- **Archivos/módulos a modificar:** [lista]
+
+**4. PROTOCOLO DE TESTING**
+- Entorno de pruebas (OS, EDR, configuración)
+- Metodología de validación
+- Métricas de éxito (tasa de detección objetivo)
+
+**5. ESTRATEGIA DE COMMITS**
+- Nomenclatura de ramas
+- Estructura de mensajes de commit
+- Documentación requerida por commit
+
+# VERIFICACIÓN
+
+Antes de entregar la respuesta, confirmar que:
+
+- [ ] Se ha analizado el código actual identificando componentes de evasión con detalles técnicos específicos
+- [ ] Se han investigado técnicas modernas con referencias verificables (mínimo 9 técnicas, 3 por nivel)
+- [ ] El plan de implementación contiene exactamente 3 niveles con complejidad creciente
+- [ ] Cada nivel incluye al menos 3 técnicas con descripción técnica, justificación y pasos de implementación
+- [ ] Se ha definido proceso de testing con criterios medibles de éxito
+- [ ] Se ha especificado estrategia de commits a GitHub con nomenclatura y documentación requerida
+- [ ] Todas las técnicas propuestas son aplicables a proyectos de desarrollo ofensivo real
+- [ ] No se han incluido técnicas ilegales o referencias a malware activo en estado salvaje
+- [ ] La respuesta es autónoma y no requiere aclaraciones adicionales para su ejecución
